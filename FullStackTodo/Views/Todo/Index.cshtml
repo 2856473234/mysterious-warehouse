@@ -1,0 +1,71 @@
+@model List<FullStackTodo.Models.TodoItem>
+
+@{
+    ViewData["Title"] = "待办事项";
+    var total = ViewBag.Total ?? 0;
+    var done = ViewBag.Done ?? 0;
+}
+
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <!-- 标题 + 统计 -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="mb-0">📋 待办事项</h2>
+            <span class="badge bg-info fs-6">
+                已完成 @done / @total
+            </span>
+        </div>
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger py-2">@TempData["Error"]</div>
+        }
+
+        <!-- 添加表单 -->
+        <form asp-controller="Todo" asp-action="Create" method="post" class="input-group mb-4">
+            @Html.AntiForgeryToken()
+            <input type="text" name="Title" class="form-control" placeholder="输入新待办..." required>
+            <button class="btn btn-primary" type="submit">➕ 添加</button>
+        </form>
+
+        <!-- 待办列表 -->
+        @if (Model.Any())
+        {
+            <div class="list-group">
+                @foreach (var item in Model)
+                {
+                    <div class="list-group-item d-flex justify-content-between align-items-center @(item.IsDone ? "list-group-item-success" : "")">
+                        <div class="d-flex align-items-center">
+                            <form asp-controller="Todo" asp-action="Toggle" method="post" class="me-3" style="margin-bottom:0">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@item.Id">
+                                <button type="submit" class="btn btn-sm @(item.IsDone ? "btn-warning" : "btn-outline-success")" title="@(item.IsDone ? "标记未完成" : "标记完成")">
+                                    @(item.IsDone ? "↩" : "✓")
+                                </button>
+                            </form>
+                            <span style="@(item.IsDone ? "text-decoration:line-through; color:#999;" : "")">
+                                @item.Title
+                            </span>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <small class="text-muted me-3">@item.CreatedAt.ToString("MM-dd HH:mm")</small>
+                            <form asp-controller="Todo" asp-action="Delete" method="post" style="margin-bottom:0">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@item.Id">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="删除">🗑</button>
+                            </form>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="text-center text-muted mt-5 pt-4">
+                <div style="font-size:48px;">📭</div>
+                <p class="mt-3 fs-5">还没有待办事项</p>
+                <p>在上方输入框中添加第一条吧！</p>
+            </div>
+        }
+    </div>
+</div>
